@@ -8,21 +8,28 @@ body {
   font-family: Arial, sans-serif;
   text-align: center;
   background: white;
-  padding-top: 40px;
+  padding-top: 30px;
 }
 
 #circle {
-  width: 220px;
-  height: 220px;
+  width: 240px;
+  height: 240px;
   border-radius: 50%;
-  margin: 40px auto;
+  margin: 20px auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 100px;
+  font-size: 110px;
   font-weight: bold;
   color: white;
   transition: transform 0.15s ease, background 0.2s ease;
+}
+
+#cue {
+  font-size: 50px;
+  font-weight: bold;
+  margin-top: 10px;
+  height: 60px;
 }
 
 button {
@@ -33,6 +40,12 @@ button {
 
 input {
   font-size: 22px;
+}
+
+#fullscreen {
+  background: black;
+  color: white;
+  border-radius: 8px;
 }
 </style>
 </head>
@@ -53,8 +66,10 @@ input {
 
 <button onclick="startClick()">START</button>
 <button onclick="stopClick()">STOP</button>
+<button id="fullscreen" onclick="goFullscreen()">FULL SCREEN</button>
 
 <div id="circle"></div>
+<div id="cue"></div>
 
 <script>
 let interval;
@@ -62,6 +77,10 @@ let signature = 4;
 let count = 1;
 let countdownBar = 1;
 let mode = "countdown";
+
+function goFullscreen() {
+  document.documentElement.requestFullscreen();
+}
 
 function setSignature(sig) {
   signature = sig;
@@ -77,9 +96,11 @@ function startClick() {
   mode = "countdown";
 
   const circle = document.getElementById("circle");
+  const cue = document.getElementById("cue");
+
   circle.innerHTML = "READY";
   circle.style.background = "gray";
-  circle.style.transform = "scale(1)";
+  cue.innerHTML = "";
 
   setTimeout(() => {
     interval = setInterval(tick, ms);
@@ -89,54 +110,73 @@ function startClick() {
 function stopClick() {
   clearInterval(interval);
   const circle = document.getElementById("circle");
+  const cue = document.getElementById("cue");
   circle.innerHTML = "";
   circle.style.background = "gray";
+  cue.innerHTML = "";
 }
 
 function flash(number, color) {
   const circle = document.getElementById("circle");
+  const cue = document.getElementById("cue");
+
   circle.innerHTML = number;
   circle.style.background = color;
+
+  // ENLARGE EFFECT
   circle.style.transform = "scale(1.25)";
   setTimeout(() => {
     circle.style.transform = "scale(1)";
   }, 150);
+
+  // SPECIAL START BEAT
+  if (number === 1 && countdownBar === 2) {
+    circle.style.background = "yellow";
+    cue.innerHTML = "START NOW!";
+    cue.style.color = "red";
+  } else {
+    cue.innerHTML = "";
+  }
 }
 
 function tick() {
-  if (mode === "countdown") {
-    // FIRST BAR (2, 3, 4) COLORS
+  // FIRST BAR (2,3,4) COLORS
+  if (mode === "countdown" && countdownBar === 1) {
+    if (count === 2) flash(2, "dodgerblue");
+    else if (count === 3) flash(3, "green");
+    else if (count === 4) flash(4, "purple");
+    else flash(count, "gray");
+  }
+
+  // SECOND BAR (1–4) RED BUT WITH SPECIAL START BEAT
+  else if (mode === "countdown" && countdownBar === 2) {
+    if (count === 1) flash(1, "yellow"); 
+    else flash(count, "red");
+  }
+
+  // END OF FIRST BAR → GO TO SECOND BAR
+  if (mode === "countdown" && count === signature) {
     if (countdownBar === 1) {
-      if (count === 2) flash(2, "dodgerblue");
-      else if (count === 3) flash(3, "green");
-      else if (count === 4) flash(4, "purple");
-      else flash(count, "gray");
+      countdownBar = 2;
+      count = 1;
+      return;
+    } else {
+      mode = "normal";
+      flash(1, "red");
+      count = 2;
+      return;
     }
+  }
 
-    // SECOND BAR (1–4) — ALL RED
-    else if (countdownBar === 2) {
-      flash(count, "red");
-    }
-
-    if (count === signature) {
-      if (countdownBar === 1) {
-        countdownBar = 2;
-        count = 1;
-        return;
-      } else {
-        mode = "normal";
-        flash(1, "red");
-        count = 2;
-        return;
-      }
-    }
-    count++;
-  } else {
-    // NORMAL METRONOME — ALL RED
+  // NORMAL METRONOME LOOP
+  else if (mode === "normal") {
     flash(count, "red");
     count++;
     if (count > signature) count = 1;
+    return;
   }
+
+  count++;
 }
 </script>
 
