@@ -4,151 +4,106 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Worship Metronome</title>
 <style>
-    body {
-        margin: 0;
-        background: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        font-family: Arial, sans-serif;
-        flex-direction: column;
-        overflow: hidden;
-    }
-    #circle {
-        width: 90vmin;
-        height: 90vmin;
-        border-radius: 50%;
-        background: black;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        font-size: 40vmin;
-        font-weight: bold;
-        transition: all 0.07s linear;
-        opacity: 0.6;
-        user-select: none;
-        margin-bottom: 20px;
-    }
-    #controls {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        align-items: center;
-    }
-    .button-group {
-        display: flex;
-        gap: 10px;
-    }
-    button {
-        padding: 10px 20px;
-        font-size: 1.2rem;
-        cursor: pointer;
-    }
-    input[type="range"] {
-        width: 200px;
-    }
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding-top: 40px;
+  background: white;
+}
+#beat {
+  font-size: 150px;
+  font-weight: bold;
+  margin-top: 40px;
+}
+button {
+  font-size: 22px;
+  padding: 12px 26px;
+  margin: 10px;
+}
+#tempo {
+  font-size: 26px;
+  margin-top: 20px;
+}
 </style>
 </head>
 <body>
 
-<div id="circle">1</div>
+<h1>Worship Metronome</h1>
 
-<div id="controls">
-    <div class="button-group">
-        <button onclick="setStyle('4/4')">4/4</button>
-        <button onclick="setStyle('3/4')">3/4</button>
-        <button onclick="setStyle('6/8')">6/8</button>
-    </div>
-    <div>
-        <label>Tempo: <span id="bpm-display">80</span> BPM</label><br>
-        <input type="range" id="tempo-slider" min="40" max="200" value="80" oninput="changeTempo(this.value)">
-    </div>
-    <div class="button-group">
-        <button onclick="startMetronome()">Start</button>
-        <button onclick="stopMetronome()">Stop</button>
-    </div>
+<div>
+  <button onclick="setSignature(4)">4/4</button>
+  <button onclick="setSignature(3)">3/4</button>
+  <button onclick="setSignature(6)">6/8</button>
 </div>
 
+<div>
+  <label>Tempo: </label>
+  <input type="number" id="bpm" value="80" min="40" max="200" style="font-size:22px;width:90px;">
+</div>
+
+<button onclick="startClick()">START</button>
+<button onclick="stopClick()">STOP</button>
+
+<div id="beat"></div>
+
 <script>
-    let bpm = 80;
-    let style = '3/4';
-    let beat = 1;
-    let beatsPerMeasure = 3;
-    let interval = (60 / bpm) * 1000;
-    let metronomeInterval = null;
+let interval;
+let signature = 4;
+let count = 1;
+let countdownBar = 1; // 1-bar then final bar
+let mode = "countdown";
 
-    const circle = document.getElementById("circle");
-    const bpmDisplay = document.getElementById("bpm-display");
+function setSignature(sig) {
+  signature = sig;
+}
 
-    function setStyle(newStyle) {
-        style = newStyle;
-        if (style === '3/4') beatsPerMeasure = 3;
-        else if (style === '4/4') beatsPerMeasure = 4;
-        else if (style === '6/8') beatsPerMeasure = 6;
-        beat = 1;
-        updateInterval();
+function startClick() {
+  stopClick();
+  const bpm = document.getElementById("bpm").value;
+  const ms = (60 / bpm) * 1000;
+
+  count = 1;
+  countdownBar = 1;
+  mode = "countdown";
+
+  document.getElementById("beat").innerText = "READY";
+
+  setTimeout(() => {
+    interval = setInterval(tick, ms);
+  }, 800);
+}
+
+function stopClick() {
+  clearInterval(interval);
+  document.getElementById("beat").innerText = "";
+}
+
+function tick() {
+  if (mode === "countdown") {
+    document.getElementById("beat").innerText = count;
+
+    if (count === signature) {
+      if (countdownBar === 1) {
+        countdownBar = 2;
+        count = 1;
+        return;
+      } else {
+        // SWITCH TO NORMAL METRONOME
+        mode = "normal";
+        count = 1;
+        document.getElementById("beat").innerText = "1";
+        return;
+      }
     }
-
-    function changeTempo(value) {
-        bpm = value;
-        bpmDisplay.textContent = bpm;
-        updateInterval();
-    }
-
-    function updateInterval() {
-        if (metronomeInterval) {
-            clearInterval(metronomeInterval);
-            metronomeInterval = setInterval(flash, getInterval());
-        }
-    }
-
-    function getInterval() {
-        if (style === '6/8') return (60 / bpm) * 1000 / 2; // feels like 2 main beats
-        else return (60 / bpm) * 1000;
-    }
-
-    function flash() {
-        circle.textContent = beat;
-
-        // Highlight main beats
-        if ((style === '3/4' && beat === 1) ||
-            (style === '4/4' && beat === 1) ||
-            (style === '6/8' && (beat === 1 || beat === 4))) {
-            circle.style.background = "red";
-            circle.style.opacity = "1";
-            circle.style.transform = "scale(1.25)";
-        } else {
-            circle.style.background = "black";
-            circle.style.opacity = "0.85";
-            circle.style.transform = "scale(1.15)";
-        }
-
-        // Reset after flash
-        setTimeout(() => {
-            circle.style.opacity = "0.6";
-            circle.style.transform = "scale(1)";
-        }, 120);
-
-        beat = beat === beatsPerMeasure ? 1 : beat + 1;
-    }
-
-    function startMetronome() {
-        if (!metronomeInterval) {
-            beat = 1; // reset to start
-            metronomeInterval = setInterval(flash, getInterval());
-        }
-    }
-
-    function stopMetronome() {
-        if (metronomeInterval) {
-            clearInterval(metronomeInterval);
-            metronomeInterval = null;
-            circle.style.opacity = "0.6";
-            circle.style.transform = "scale(1)";
-        }
-    }
+    count++;
+  } 
+  else {
+    // NORMAL METRONOME LOOP
+    document.getElementById("beat").innerText = count;
+    count++;
+    if (count > signature) count = 1;
+  }
+}
 </script>
 
 </body>
