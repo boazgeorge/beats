@@ -14,7 +14,6 @@ body {
 #circle {
   width: 220px;
   height: 220px;
-  background: red;
   border-radius: 50%;
   margin: 40px auto;
   display: flex;
@@ -23,7 +22,7 @@ body {
   font-size: 100px;
   font-weight: bold;
   color: white;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, background 0.2s ease;
 }
 
 button {
@@ -77,8 +76,10 @@ function startClick() {
   countdownBar = 1;
   mode = "countdown";
 
-  document.getElementById("circle").innerHTML = "R";
-  document.getElementById("circle").style.transform = "scale(1)";
+  const circle = document.getElementById("circle");
+  circle.innerHTML = "READY";
+  circle.style.background = "gray";
+  circle.style.transform = "scale(1)";
 
   setTimeout(() => {
     interval = setInterval(tick, ms);
@@ -87,13 +88,15 @@ function startClick() {
 
 function stopClick() {
   clearInterval(interval);
-  document.getElementById("circle").innerHTML = "";
-  document.getElementById("circle").style.transform = "scale(1)";
+  const circle = document.getElementById("circle");
+  circle.innerHTML = "";
+  circle.style.background = "gray";
 }
 
-function flash(number) {
+function flash(number, color) {
   const circle = document.getElementById("circle");
   circle.innerHTML = number;
+  circle.style.background = color;
   circle.style.transform = "scale(1.25)";
   setTimeout(() => {
     circle.style.transform = "scale(1)";
@@ -102,7 +105,18 @@ function flash(number) {
 
 function tick() {
   if (mode === "countdown") {
-    flash(count);
+    // FIRST BAR (2, 3, 4) COLORS
+    if (countdownBar === 1) {
+      if (count === 2) flash(2, "dodgerblue");
+      else if (count === 3) flash(3, "green");
+      else if (count === 4) flash(4, "purple");
+      else flash(count, "gray");
+    }
+
+    // SECOND BAR (1–4) — ALL RED
+    else if (countdownBar === 2) {
+      flash(count, "red");
+    }
 
     if (count === signature) {
       if (countdownBar === 1) {
@@ -111,14 +125,15 @@ function tick() {
         return;
       } else {
         mode = "normal";
-        flash(1);
+        flash(1, "red");
         count = 2;
         return;
       }
     }
     count++;
   } else {
-    flash(count);
+    // NORMAL METRONOME — ALL RED
+    flash(count, "red");
     count++;
     if (count > signature) count = 1;
   }
