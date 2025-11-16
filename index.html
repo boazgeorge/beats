@@ -11,10 +11,10 @@ body {
   padding-top: 30px;
 }
 
-#circle {
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
+#box {
+  width: 300px;
+  height: 180px;
+  border-radius: 20px;
   margin: 20px auto;
   display: flex;
   justify-content: center;
@@ -68,7 +68,7 @@ input {
 <button onclick="stopClick()">STOP</button>
 <button id="fullscreen" onclick="goFullscreen()">FULL SCREEN</button>
 
-<div id="circle"></div>
+<div id="box"></div>
 <div id="cue"></div>
 
 <script>
@@ -95,11 +95,11 @@ function startClick() {
   countdownBar = 1;
   mode = "countdown";
 
-  const circle = document.getElementById("circle");
+  const box = document.getElementById("box");
   const cue = document.getElementById("cue");
 
-  circle.innerHTML = "READY";
-  circle.style.background = "gray";
+  box.innerHTML = "READY";
+  box.style.background = "gray";
   cue.innerHTML = "";
 
   setTimeout(() => {
@@ -109,29 +109,29 @@ function startClick() {
 
 function stopClick() {
   clearInterval(interval);
-  const circle = document.getElementById("circle");
+  const box = document.getElementById("box");
   const cue = document.getElementById("cue");
-  circle.innerHTML = "";
-  circle.style.background = "gray";
+  box.innerHTML = "";
+  box.style.background = "gray";
   cue.innerHTML = "";
 }
 
 function flash(number, color) {
-  const circle = document.getElementById("circle");
+  const box = document.getElementById("box");
   const cue = document.getElementById("cue");
 
-  circle.innerHTML = number;
-  circle.style.background = color;
+  box.innerHTML = number;
+  box.style.background = color;
 
   // ENLARGE EFFECT
-  circle.style.transform = "scale(1.25)";
+  box.style.transform = "scale(1.15)";
   setTimeout(() => {
-    circle.style.transform = "scale(1)";
+    box.style.transform = "scale(1)";
   }, 150);
 
   // SPECIAL START BEAT
   if (number === 1 && countdownBar === 2) {
-    circle.style.background = "yellow";
+    box.style.background = "yellow";
     cue.innerHTML = "START NOW!";
     cue.style.color = "red";
   } else {
@@ -140,7 +140,7 @@ function flash(number, color) {
 }
 
 function tick() {
-  // FIRST BAR (2,3,4) COLORS
+  // FIRST BAR COLORS
   if (mode === "countdown" && countdownBar === 1) {
     if (count === 2) flash(2, "dodgerblue");
     else if (count === 3) flash(3, "green");
@@ -148,13 +148,13 @@ function tick() {
     else flash(count, "gray");
   }
 
-  // SECOND BAR (1–4) RED BUT WITH SPECIAL START BEAT
+  // SECOND BAR COLORS
   else if (mode === "countdown" && countdownBar === 2) {
     if (count === 1) flash(1, "yellow"); 
     else flash(count, "red");
   }
 
-  // END OF FIRST BAR → GO TO SECOND BAR
+  // Move to next bar or metronome
   if (mode === "countdown" && count === signature) {
     if (countdownBar === 1) {
       countdownBar = 2;
@@ -169,7 +169,7 @@ function tick() {
   }
 
   // NORMAL METRONOME LOOP
-  else if (mode === "normal") {
+  if (mode === "normal") {
     flash(count, "red");
     count++;
     if (count > signature) count = 1;
